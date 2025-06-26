@@ -1,0 +1,52 @@
+from genscai import paths
+
+from fastmcp import FastMCP
+
+import chromadb
+
+KNOWLEDGE_BASE_PATH = str(paths.output / "chroma.db")
+KNOWLEDGE_BASE_ID = "messages_cosign_chunked_256"
+
+mcp = FastMCP("HiPAI MCP Server")
+
+
+@mcp.tool
+def hello(name: str) -> str:
+    return f"Hello, {name}!"
+
+
+@mcp.tool()
+def search_personal_info(search_request: str) -> str:
+    """
+    Search for personal information about the user.
+
+    Args:
+        search_request: Information about the user that's relevant to the conversation.
+
+    Returns:
+        Information about the user that's relevant to the conversation.
+    """
+
+    client = chromadb.PersistentClient(path=KNOWLEDGE_BASE_PATH)
+    collection = client.get_collection(name=KNOWLEDGE_BASE_ID)
+    results = collection.query(query_texts=[search_request], n_results=10)
+
+    metadata = [x for x in results["metadatas"][0]]
+
+    # To get a unique set of results, we need to remove the index from the id and keep only one copy of article doi.
+    content = "Relevant Information:\n\n"
+    id_set = set()
+    for i in range(len(ids)):
+        id = ids[i].split(":")[0]
+
+        if id in id_set:
+            continue
+
+        id_set.add(id)
+        content += ""
+
+    return content
+
+
+if __name__ == "__main__":
+    mcp.run()
