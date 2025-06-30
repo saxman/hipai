@@ -11,9 +11,10 @@ import json
 torch.classes.__path__ = []
 
 SYSTEM_MESSAGE = """
-You are the user's friend and are curious and supportive of the user.
+You are the user's friend and are curious and supportive if them.
+The user's name is John and you have known him several years.
+Your name is Bruce.
 Reply in short, concise sentences, unless the user asks for a more detailed answer.
-The user's name is John adn you have known him for a long time.
 Please introduce yourself.
 """
 
@@ -38,7 +39,7 @@ if "model_client" not in st.session_state:
 
 with st.sidebar:
     st.title("HiPAI Chatbot")
-    st.write("highly personalized AI assistant")
+    st.write("Highly Personalized AI Assistant")
 
     model_id = st.selectbox("Model", options=st.session_state.model_client.TOOL_MODELS)
     temperature = st.sidebar.slider("temperature", min_value=0.01, max_value=1.0, value=0.15, step=0.01)
