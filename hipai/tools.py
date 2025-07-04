@@ -15,10 +15,10 @@ def hello(name: str) -> str:
     return f"Hello, {name}!"
 
 
-@mcp.tool()
-def search_facts(search_request: str) -> str:
+@mcp.tool
+def search_memories(search_request: str) -> str:
     """
-    Search for facts about the user.
+    Search for memories about the user.
 
     Args:
         search_request: Information about the user that's relevant to the conversation.
@@ -47,6 +47,19 @@ def search_facts(search_request: str) -> str:
         content += f"{snippets[i]}\n"
 
     return content
+
+@mcp.tool
+def add_memories(memories: list[str]) -> None:
+    """
+    Add memories about the user.
+
+    Args:
+        memories: A list of memories to add for the user.
+    """
+
+    client = chromadb.PersistentClient(path=KNOWLEDGE_BASE_PATH)
+    collection = client.get_collection(name=KNOWLEDGE_BASE_ID)
+    collection.add(documents=memories)
 
 
 if __name__ == "__main__":
