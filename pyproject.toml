@@ -15,6 +15,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "ipykernel>=6.29.5",
+    "ipywidgets",
 ]
 
 [build-system]
