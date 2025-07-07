@@ -61,6 +61,16 @@ def add_memories(memories: list[str]) -> None:
     collection = client.get_collection(name=KNOWLEDGE_BASE_ID)
     collection.add(documents=memories)
 
+@mcp.tool
+def get_time_and_date() -> str:
+    """
+    Get the current time and date.
+
+    Returns:
+        The current time and date as a string.
+    """
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 if __name__ == "__main__":
     mcp.run()
