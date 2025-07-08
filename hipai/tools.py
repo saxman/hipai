@@ -30,22 +30,9 @@ def search_memories(search_request: str) -> str:
     collection = client.get_collection(name=KNOWLEDGE_BASE_ID)
     results = collection.query(query_texts=[search_request], n_results=10)
 
-    ids = [x for x in results["ids"][0]]
-    snippets = [x for x in results["documents"][0]]
+    memories = [x for x in results["documents"][0]]
 
-    # To get a unique set of articles, we need to remove the index from the id and keep only one copy of article doi.
-    content = "Relevant research articles:\n\n"
-    id_set = set()
-    for i in range(len(ids)):
-        id = ids[i].split(":")[0]
-
-        if id in id_set:
-            continue
-
-        id_set.add(id)
-        content += f"{snippets[i]}\n"
-
-    return content
+    return "\n".join(memories)
 
 @mcp.tool
 def add_memories(memories: list[str]) -> None:
