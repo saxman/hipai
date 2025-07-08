@@ -1,11 +1,10 @@
 from hipai import paths
 
 from fastmcp import FastMCP
-
 import chromadb
 
 KNOWLEDGE_BASE_PATH = str(paths.data / "chroma.db")
-KNOWLEDGE_BASE_ID = "messages_cosign_chunked_256"
+KNOWLEDGE_BASE_ID = "memory"
 
 mcp = FastMCP("HiPAI MCP Server")
 
@@ -59,7 +58,11 @@ def add_memories(memories: list[str]) -> None:
 
     client = chromadb.PersistentClient(path=KNOWLEDGE_BASE_PATH)
     collection = client.get_collection(name=KNOWLEDGE_BASE_ID)
-    collection.add(documents=memories)
+
+    collection.add(
+        documents=memories,
+        ids=[str(hash(x)) for x in memories]
+    )
 
 @mcp.tool
 def get_time_and_date() -> str:
