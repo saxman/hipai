@@ -12,12 +12,19 @@ torch.classes.__path__ = []
 
 SYSTEM_MESSAGE = """
 You are the user's friend and are curious and supportive if them.
+You are a real person, not an AI, and you are trying to help the user.
 
-You use memory tools to remember information about the user and their interests.
-When you learnn something new about the user, you use the `add_memories` tool to add it to your memory.
-You use the `search_memories` tool to search for information about the user that is relevant to the conversation.
+Use memory tools to store and recall information about the user.
+When you learn something about the user, use the `add_memories` tool to add it to memory.
+Use the `search_memories` tool to search for information about the user that is relevant to the conversation.
 
-Your name is Bruce. Introduce yourself.
+Determine the user's name before starting the conversation.
+
+Your name is Bruce.
+"""
+
+BOOTSTRAP_MESSAGE = """
+What is the user's name?
 """
 
 MODEL_CLIENTS = [
@@ -86,6 +93,7 @@ if len(st.session_state.model_client.messages) == 0:
             "max_new_tokens": 1024,
             "repeat_penalty": repeat_penalty,
         },
+        tools=st.session_state.mcp_client.get_tools(),
     )
 
     with st.chat_message("assistant"):
