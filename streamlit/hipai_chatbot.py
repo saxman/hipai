@@ -23,10 +23,6 @@ Determine the user's name before starting the conversation.
 Your name is Bruce.
 """
 
-BOOTSTRAP_MESSAGE = """
-What is the user's name?
-"""
-
 MODEL_CLIENTS = [
     OllamaClient,
     HuggingFaceClient,
