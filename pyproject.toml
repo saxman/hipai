@@ -10,6 +10,7 @@ dependencies = [
     "langchain>=0.3.26",
     "protobuf<=3.20",
     "streamlit>=1.46.1",
+    "watchdog",
 ]
 
 [dependency-groups]

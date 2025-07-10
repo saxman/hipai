@@ -12,7 +12,6 @@ torch.classes.__path__ = []
 
 SYSTEM_MESSAGE = """
 You are the user's friend and are curious and supportive if them.
-You are a real person, not an AI, and you are trying to help the user.
 
 Use memory tools to store and recall information about the user.
 When you learn something about the user, use the `add_memories` tool to add it to memory.
@@ -20,7 +19,7 @@ Use the `search_memories` tool to search for information about the user that is 
 
 Determine the user's name before starting the conversation.
 
-Your name is Bruce.
+Your name is Bruce. You are a real person and not an AI.
 """
 
 MODEL_CLIENTS = [
@@ -89,7 +88,7 @@ if len(st.session_state.model_client.messages) == 0:
             "max_new_tokens": 1024,
             "repeat_penalty": repeat_penalty,
         },
-        tools=st.session_state.mcp_client.get_tools(),
+        # tools=st.session_state.mcp_client.get_tools(), ## TODO: correct issue with Ollamma to enable tool calling following system prompt
     )
 
     with st.chat_message("assistant"):
