@@ -4,14 +4,9 @@ from fastmcp import FastMCP
 import chromadb
 
 KNOWLEDGE_BASE_PATH = str(paths.data / "chroma.db")
-KNOWLEDGE_BASE_ID = "memory"
+KNOWLEDGE_BASE_ID = "memories"
 
 mcp = FastMCP("HiPAI MCP Server")
-
-
-@mcp.tool
-def hello(name: str) -> str:
-    return f"Hello, {name}!"
 
 
 @mcp.tool
