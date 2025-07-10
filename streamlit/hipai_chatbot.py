@@ -88,7 +88,7 @@ if len(st.session_state.model_client.messages) == 0:
             "max_new_tokens": 1024,
             "repeat_penalty": repeat_penalty,
         },
-        # tools=st.session_state.mcp_client.get_tools(), ## TODO: correct issue with Ollamma to enable tool calling following system prompt
+        tools=st.session_state.mcp_client.get_tools()
     )
 
     with st.chat_message("assistant"):
