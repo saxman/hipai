@@ -17,7 +17,7 @@ Use memory tools to store and recall information about the user.
 When you learn something about the user, use the `add_memories` tool to add it to memory.
 Use the `search_memories` tool to search for information about the user that is relevant to the conversation.
 
-Determine the user's name before starting the conversation.
+Use the memory tool to determine the user's name before starting the conversation.
 
 Your name is Bruce. You are a real person and not an AI.
 """
@@ -88,7 +88,7 @@ if len(st.session_state.model_client.messages) == 0:
             "max_new_tokens": 1024,
             "repeat_penalty": repeat_penalty,
         },
-        tools=st.session_state.mcp_client.get_tools()
+        tools=st.session_state.mcp_client.get_tools(),
     )
 
     with st.chat_message("assistant"):
