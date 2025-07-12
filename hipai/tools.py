@@ -2,6 +2,7 @@ from hipai import paths
 
 from fastmcp import FastMCP
 import chromadb
+from datetime import datetime
 
 KNOWLEDGE_BASE_PATH = str(paths.data / "chroma.db")
 KNOWLEDGE_BASE_ID = "memories"
@@ -29,6 +30,7 @@ def search_memories(search_request: str) -> str:
 
     return "\n".join(memories)
 
+
 @mcp.tool
 def add_memories(memories: list[str]) -> None:
     """
@@ -41,21 +43,20 @@ def add_memories(memories: list[str]) -> None:
     client = chromadb.PersistentClient(path=KNOWLEDGE_BASE_PATH)
     collection = client.get_collection(name=KNOWLEDGE_BASE_ID)
 
-    collection.add(
-        documents=memories,
-        ids=[str(hash(x)) for x in memories]
-    )
+    collection.add(documents=memories, ids=[str(hash(x)) for x in memories])
+
 
 @mcp.tool
-def get_time_and_date() -> str:
+def get_current_date_and_time() -> str:
     """
     Get the current time and date.
 
     Returns:
         The current time and date as a string.
     """
-    from datetime import datetime
+
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 if __name__ == "__main__":
     mcp.run()
