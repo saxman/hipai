@@ -194,4 +194,4 @@ cython_debug/
 .cursorindexingignore
 
 # Project files
-data/
+output/
