@@ -4,7 +4,7 @@ from fastmcp import FastMCP
 import chromadb
 from datetime import datetime
 
-KNOWLEDGE_BASE_PATH = str(paths.data / "chroma.db")
+KNOWLEDGE_BASE_PATH = str(paths.output / "chroma.db")
 KNOWLEDGE_BASE_ID = "memories"
 
 mcp = FastMCP("HiPAI MCP Server")
