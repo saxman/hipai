@@ -35,6 +35,10 @@ MODEL_CLIENTS = [
 MCP_SERVERS = {
     "mcpServers": {
         "hipai": {"command": "python", "args": [str(paths.package / "tools.py")]},
+        "memory": {
+            "command": "docker",
+            "args": ["run", "-i", "-v", "claude-memory:/app/dist", "--rm", "mcp/memory"]
+        },
     }
 }
 
