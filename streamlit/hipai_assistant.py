@@ -38,10 +38,10 @@ MCP_SERVERS = {
     }
 }
 
-# Initialize the session state if we don't already have a model loaded
+# Initialize the session state if we don't already have a model loaded. This only happens first run.
 if "model_client" not in st.session_state:
-    st.session_state.model_id = MODEL_CLIENTS[0].TOOL_MODELS[0]
-    st.session_state.model_client = MODEL_CLIENTS[0](st.session_state.model_id, system_message=SYSTEM_MESSAGE)
+    st.session_state.model = MODEL_CLIENTS[0].TOOL_MODELS[0]
+    st.session_state.model_client = MODEL_CLIENTS[0](st.session_state.model, system_message=SYSTEM_MESSAGE)
 
     st.session_state.mcp_client = MCPClient(MCP_SERVERS)
     st.session_state.model_client.mcp_client = st.session_state.mcp_client
@@ -51,31 +51,34 @@ if "model_client" not in st.session_state:
         use_last_conversation=True,
     )
     st.session_state.model_client.messages = st.session_state.conversation_manager.messages
-with st.sidebar:
-    st.title("HiPAI Chatbot")
-    st.write("Highly Personalized AI Assistant")
 
-    model_id = st.selectbox("Model", options=st.session_state.model_client.TOOL_MODELS)
+with st.sidebar:
+    st.title("AIMU Chatbot")
+    st.write("Example AI Assistant")
+
+    model = st.selectbox("Model", options=st.session_state.model_client.TOOL_MODELS, format_func=lambda x: x.value)
     temperature = st.sidebar.slider("temperature", min_value=0.01, max_value=1.0, value=0.15, step=0.01)
     top_p = st.sidebar.slider("top_p", min_value=0.01, max_value=1.0, value=0.9, step=0.01)
     repeat_penalty = st.sidebar.slider("repeat_penalty", min_value=0.9, max_value=1.5, value=1.1, step=0.1)
     model_client = st.selectbox("Model Client", options=MODEL_CLIENTS, format_func=lambda x: x.__name__)
 
-    # If the specified model client has changes, create a new intsance of it reset to the first tool model
-    # Otherwise, if the specified model has changed, create a new instance of the model client with the new model
+    # If the model client has changed (e.g. OllamaClient to HuggingFaceClient), create a new mode client instance.
+    # Otherwise, if the model has changed, create a new instance of the model client using the new model.
     if not isinstance(st.session_state.model_client, model_client):
         del st.session_state.model_client
 
-        st.session_state.model_id = model_client.TOOL_MODELS[0]
-        st.session_state.model_client = model_client(st.session_state.model_id, system_message=SYSTEM_MESSAGE)
+        st.session_state.model = model_client.TOOL_MODELS[0]
+        st.session_state.model_client = MODEL_CLIENTS[0](st.session_state.model, system_message=SYSTEM_MESSAGE)
+
         st.session_state.model_client.mcp_client = st.session_state.mcp_client
 
         st.rerun()
-    elif st.session_state.model_id != model_id:
+    elif st.session_state.model != model:
         del st.session_state.model_client
 
-        st.session_state.model_id = model_id
-        st.session_state.model_client = model_client(st.session_state.model_id, system_message=SYSTEM_MESSAGE)
+        st.session_state.model = model
+        st.session_state.model_client = model_client(st.session_state.model, system_message=SYSTEM_MESSAGE)
+
         st.session_state.model_client.mcp_client = st.session_state.mcp_client
 
         st.rerun()
@@ -87,7 +90,7 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
 
-# Either generate and stream the system message response or display the chat message history
+# Either generate and stream the initial user message response or display the chat message history.
 if len(st.session_state.model_client.messages) == 0:
     streamed_response = st.session_state.model_client.chat_streamed(
         INITIAL_USER_MESSAGE,
@@ -105,7 +108,7 @@ if len(st.session_state.model_client.messages) == 0:
 
     st.session_state.conversation_manager.update_conversation(st.session_state.model_client.messages)
 else:
-    # Only render assistant and user messages (not tool messages) and not the system (first) message
+    # Only render assistant and user messages (not tool messages) and not the system message and initial user message.
     messages = [
         x for x in st.session_state.model_client.messages[2:] if x["role"] in ["assistant", "user"] and "content" in x
     ]
