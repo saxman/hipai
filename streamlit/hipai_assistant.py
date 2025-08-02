@@ -35,6 +35,10 @@ MODEL_CLIENTS = [
 MCP_SERVERS = {
     "mcpServers": {
         "hipai": {"command": "python", "args": [str(paths.package / "tools.py")]},
+        "memory": {
+            "command": "docker",
+            "args": ["run", "-i", "-v", "claude-memory:/app/dist", "--rm", "mcp/memory"]
+        },
     }
 }
 
@@ -100,7 +104,6 @@ if len(st.session_state.model_client.messages) == 0:
             "max_new_tokens": 1024,
             "repeat_penalty": repeat_penalty,
         },
-        tools=st.session_state.mcp_client.get_tools(),
     )
 
     with st.chat_message("assistant"):
@@ -127,7 +130,6 @@ if prompt := st.chat_input("What's up?"):
             "max_new_tokens": 1024,
             "repeat_penalty": repeat_penalty,
         },
-        tools=st.session_state.mcp_client.get_tools(),
     )
 
     with st.chat_message("assistant"):
