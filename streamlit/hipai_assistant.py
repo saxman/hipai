@@ -1,6 +1,6 @@
 from hipai import paths
 
-from aimu.models import HuggingFaceClient, OllamaClient
+from aimu.models import HuggingFaceClient, OllamaClient, AisuiteClient
 from aimu.tools import MCPClient
 from aimu.memory import ConversationManager
 
@@ -30,15 +30,16 @@ Greet the user.
 MODEL_CLIENTS = [
     OllamaClient,
     HuggingFaceClient,
+    AisuiteClient
 ]
 
 MCP_SERVERS = {
     "mcpServers": {
         "hipai": {"command": "python", "args": [str(paths.package / "tools.py")]},
-        "memory": {
-            "command": "docker",
-            "args": ["run", "-i", "-v", "claude-memory:/app/dist", "--rm", "mcp/memory"]
-        },
+        # "memory": {
+        #     "command": "docker",
+        #     "args": ["run", "-i", "-v", "claude-memory:/app/dist", "--rm", "mcp/memory"]
+        # },
     }
 }
 
@@ -72,7 +73,7 @@ with st.sidebar:
         del st.session_state.model_client
 
         st.session_state.model = model_client.TOOL_MODELS[0]
-        st.session_state.model_client = MODEL_CLIENTS[0](st.session_state.model, system_message=SYSTEM_MESSAGE)
+        st.session_state.model_client = model_client(st.session_state.model, system_message=SYSTEM_MESSAGE)
 
         st.session_state.model_client.mcp_client = st.session_state.mcp_client
 
