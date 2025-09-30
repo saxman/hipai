@@ -37,7 +37,7 @@ def add_memories(memories: list[str]) -> None:
     Add memories about the user.
 
     Args:
-        memories: A list of memories to add for the user.
+        memories: A list of memories, as strings, to save about the user.
     """
 
     client = chromadb.PersistentClient(path=KNOWLEDGE_BASE_PATH)
