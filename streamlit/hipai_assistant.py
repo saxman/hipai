@@ -12,7 +12,7 @@ import json
 torch.classes.__path__ = []
 
 SYSTEM_MESSAGE = """
-You are the user's friend and are curious and supportive if them.
+You are the user's friend and are curious and supportive of them.
 
 Use memory tools to store and recall information about the user.
 When you learn something about the user, use the `add_memories` tool to add it to memory.
@@ -32,10 +32,6 @@ MODEL_CLIENTS = [OllamaClient, HuggingFaceClient, AisuiteClient]
 MCP_SERVERS = {
     "mcpServers": {
         "hipai": {"command": "python", "args": [str(paths.package / "tools.py")]},
-        # "memory": {
-        #     "command": "docker",
-        #     "args": ["run", "-i", "-v", "claude-memory:/app/dist", "--rm", "mcp/memory"]
-        # },
     }
 }
 
@@ -48,14 +44,14 @@ if "model_client" not in st.session_state:
     st.session_state.model_client.mcp_client = st.session_state.mcp_client
 
     st.session_state.conversation_manager = ConversationManager(
-        db_path=str(paths.output / "chat_history.json"),
+        db_path=str(paths.output / "assistant_chat_history.json"),
         use_last_conversation=True,
     )
     st.session_state.model_client.messages = st.session_state.conversation_manager.messages
 
 with st.sidebar:
-    st.title("HiPAI Chatbot")
-    st.write("Personal AI Assistant")
+    st.title("HiPAI")
+    st.write("Personal AI Assistant Chatbot")
 
     model = st.selectbox("Model", options=st.session_state.model_client.TOOL_MODELS, format_func=lambda x: x.value)
     temperature = st.sidebar.slider("temperature", min_value=0.01, max_value=1.0, value=0.15, step=0.01)
