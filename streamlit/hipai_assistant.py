@@ -54,8 +54,8 @@ if "model_client" not in st.session_state:
     st.session_state.model_client.messages = st.session_state.conversation_manager.messages
 
 with st.sidebar:
-    st.title("AIMU Chatbot")
-    st.write("Example AI Assistant")
+    st.title("HiPAI Chatbot")
+    st.write("Personal AI Assistant")
 
     model = st.selectbox("Model", options=st.session_state.model_client.TOOL_MODELS, format_func=lambda x: x.value)
     temperature = st.sidebar.slider("temperature", min_value=0.01, max_value=1.0, value=0.15, step=0.01)
