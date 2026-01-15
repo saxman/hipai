@@ -2,7 +2,7 @@ from hipai import paths
 
 from aimu.models import HuggingFaceClient, OllamaClient, AisuiteClient
 from aimu.tools import MCPClient
-from aimu.memory import ConversationManager
+from aimu.history import ConversationManager
 
 import streamlit as st
 import torch
