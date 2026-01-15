@@ -4,6 +4,7 @@ from fastmcp import FastMCP
 import chromadb
 from datetime import datetime
 
+
 KNOWLEDGE_BASE_PATH = str(paths.output / "chroma.db")
 KNOWLEDGE_BASE_ID = "memories"
 
@@ -26,7 +27,9 @@ def search_memories(search_request: str) -> str:
     collection = client.get_collection(name=KNOWLEDGE_BASE_ID)
     results = collection.query(query_texts=[search_request], n_results=10)
 
-    memories = [x for x in results["documents"][0]]
+    memories = []
+    if results["documents"]:
+        memories = [x for x in results["documents"][0]]
 
     return "\n".join(memories)
 
