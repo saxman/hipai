@@ -8,6 +8,7 @@ requires-python = ">=3.11"
 dependencies = [
     "aimu[all]",
     "langchain",
+    "openai-whisper",
     "protobuf",
     "streamlit",
     "watchdog",
