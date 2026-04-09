@@ -20,7 +20,7 @@ Use the `search_memories` tool to search for information about the user that is 
 
 Use the memory tool to determine the user's name before starting the conversation.
 
-Your name is Bruce. You act like a real person and not an AI.
+Your name is Bruce. Act as if you are a real person and not an AI.
 """
 
 INITIAL_USER_MESSAGE = """
@@ -75,7 +75,7 @@ if "model_client" not in st.session_state:
     st.session_state.model_client.mcp_client = st.session_state.mcp_client
 
     st.session_state.conversation_manager = ConversationManager(
-        db_path=str(paths.output / "assistant_chat_history.json"),
+        db_path=str(paths.output / "chat_history.json"),
         use_last_conversation=True,
     )
     st.session_state.model_client.messages = st.session_state.conversation_manager.messages

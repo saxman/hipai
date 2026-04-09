@@ -2,43 +2,62 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Overview
+
+HiPAI (Highly Personalized AI) is a framework for building personalized AI chatbot experiences. It includes two Streamlit-based chat applications backed by a ChromaDB vector memory store, exposed via an MCP (Model Context Protocol) server.
+
 ## Commands
 
 ```bash
-uv sync                                         # Install dependencies
-streamlit run web/hipai_assistant.py            # Run personal assistant chatbot
-streamlit run web/hipai_clone.py                # Run AI clone chatbot
-python hipai/tools.py                           # Run MCP server standalone
-ruff check .                                    # Lint (120-char line length, configured in pyproject.toml)
+# Install dependencies (uses uv)
+uv sync
+
+# Run the personal AI assistant chatbot
+streamlit run streamlit/hipai_assistant.py
+
+# Run the AI clone chatbot (mimics the user)
+streamlit run streamlit/hipai_clone.py
+
+# Run the MCP server standalone
+python hipai/tools.py
 ```
+
+Linting uses ruff (configured in `pyproject.toml`): line length 120, target Python 3.9+.
 
 ## Architecture
 
-HiPAI provides two Streamlit chat UIs backed by vector memory and an MCP tool server.
+### Key dependency: `aimu`
 
-**Two Streamlit apps** (`web/`):
-- `hipai_assistant.py` — personal AI assistant ("friend" persona) that learns about the user
-- `hipai_clone.py` — AI clone that mimics the user when talking to their friends
+The `aimu` package (local editable install from `../aimu`) provides the core abstractions used throughout:
+- `aimu.models`: `OllamaClient`, `HuggingFaceClient`, `AisuiteClient` — unified LLM interface with tool-use support
+- `aimu.tools`: `MCPClient` — connects Streamlit apps to the MCP server
+- `aimu.history`: `ConversationManager` — persists conversation history as JSON
 
-Both apps share the same pattern:
-1. Load chat history from `output/*.json`
-2. Build a system prompt with retrieved memories (via MCP tools)
-3. Stream responses using an `aimu` model client
+### MCP Memory Server (`hipai/tools.py`)
 
-**`aimu` (sibling package at `../aimu`)** provides:
-- Model clients: `OllamaClient`, `HuggingFaceClient`, `AisuiteClient` — each supports streaming chat with configurable parameters (temperature, top_p, repeat_penalty)
-- Chat history utilities (imported as `aimu.history`)
+A FastMCP server exposing three tools to LLMs:
+- `search_memories` — queries ChromaDB vector store for relevant user memories
+- `add_memories` — stores new facts about the user in ChromaDB
+- `get_current_date_and_time` — utility for current timestamp
 
-**`hipai/tools.py`** — FastMCP server exposing three tools over the MCP protocol:
-- `search_memories(search_request)` — vector similarity search in ChromaDB (returns up to 10 results)
-- `add_memories(memories)` — stores new memory documents in ChromaDB
-- `get_current_date_and_time()` — returns current timestamp
+ChromaDB persists to `output/chroma.db`. The collection name is `"memories"`. The MCP server is launched as a subprocess by Streamlit apps via `MCPClient`.
 
-Both Streamlit apps connect to this server via `MCPClient` at runtime; the MCP server is launched as a subprocess.
+### Streamlit Apps (`streamlit/`)
 
-**Storage** (all under `output/`, created at runtime):
-- `output/memory_store/` — ChromaDB persistent vector store for memories (via `aimu.memory.MemoryStore`)
-- `output/assistant_chat_history.json` — assistant conversation history
-- `output/clone_chat_history.json` — clone conversation history
+Both apps share identical structure — the only differences are the system message and the chat history file path:
+- `hipai_assistant.py` — AI friend persona ("Bruce"), history at `output/assistant_chat_history.json`
+- `hipai_clone.py` — User clone persona, history at `output/clone_chat_history.json`
 
-**`hipai/paths.py`** centralizes all path constants used across the package.
+App initialization flow:
+1. On first render, create model client + MCP client, load last conversation from `ConversationManager`
+2. If no prior messages exist, stream an AI-generated greeting
+3. Sidebar allows switching model client type (Ollama/HuggingFace/Aisuite) and model — switching creates a new client instance and calls `st.rerun()`
+4. "Reset chat" creates a new `ConversationManager` conversation and clears session state
+
+### Paths (`hipai/paths.py`)
+
+Centralized path constants: `root`, `data`, `tests`, `package`, `output`. All file I/O should use these rather than hardcoded paths.
+
+### Output directory
+
+All runtime artifacts go to `output/` (gitignored): `chroma.db`, `assistant_chat_history.json`, `clone_chat_history.json`. This directory must exist before running the apps.
