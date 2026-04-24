@@ -1,12 +1,12 @@
 from hipai import paths
 
 from aimu.models import HuggingFaceClient, OllamaClient, AisuiteClient, StreamPhase
-from aimu.tools import MCPClient
+from aimu.tools.client import MCPClient
 from aimu.history import ConversationManager
 
 import streamlit as st
 import torch
-import json
+import json  # used for the Messages debug popover
 
 # Avoid torch RuntimeError when using Hugging Face Transformers
 torch.classes.__path__ = []
@@ -14,7 +14,9 @@ torch.classes.__path__ = []
 SYSTEM_MESSAGE = """
 You are the user's friend and are curious and supportive of them.
 
-Use memory tools to store and recall information about the user.
+Use memory tools to store and recall information about the user and people in their life.
+This will help you build a long-term relationship with the user and provide more personalized responses.
+
 When you learn something about the user, use the `add_memories` tool to add it to memory.
 Use the `search_memories` tool to search for information about the user that is relevant to the conversation.
 
@@ -34,39 +36,34 @@ MODEL_CLIENTS = [
 
 
 def stream_chat_response(streamed_response):
-    thinking_box = None
-    thinking_text = ""
-    response_placeholder = None
-    response_text = ""
+    current_type = None
+    current_box = None
+    current_text = ""
 
     for chunk in streamed_response:
-        if chunk.phase == StreamPhase.THINKING:
-            if thinking_box is None:
-                thinking_box = st.expander("🤔 Thinking").empty()
-                thinking_text = ""
-            thinking_text += chunk.content
-            thinking_box.markdown(thinking_text)
-        elif chunk.phase == StreamPhase.TOOL_CALLING:
-            thinking_box = None  # reset so next thinking phase gets a fresh container
-            response_placeholder = None  # force new assistant block after tools]
+        if chunk.phase == StreamPhase.TOOL_CALLING:
+            current_type = None  # force a fresh box on the next phase
             with st.expander("🔧 Tool call"):
                 st.markdown(f"**Tool call:** {chunk.content['name']}")
                 st.markdown(f"**Tool response:** {chunk.content['response']}")
-        elif chunk.phase == StreamPhase.GENERATING:
-            if response_placeholder is None:
-                response_text = ""
-                response_placeholder = st.chat_message("assistant").empty()
-            response_text += chunk.content
-            response_placeholder.markdown(response_text)
+            continue
+
+        if chunk.phase != current_type:
+            current_type = chunk.phase
+            current_text = ""
+            current_box = (
+                st.expander("🤔 Thinking").empty()
+                if chunk.phase == StreamPhase.THINKING
+                else st.chat_message("assistant").empty()
+            )
+
+        current_text += chunk.content
+        current_box.markdown(current_text)
 
 
 MCP_SERVERS = {
     "mcpServers": {
-        "memory": {
-            "command": "python",
-            "args": ["-m", "aimu.memory"],
-            "env": {"MEMORY_STORE_PATH": str(paths.output / "chroma.db")},
-        },
+        "aimu": {"command": "python", "args": ["-m", "aimu.tools.servers"]},
     }
 }
 
@@ -85,8 +82,8 @@ if "model_client" not in st.session_state:
     st.session_state.model_client.messages = st.session_state.conversation_manager.messages
 
 with st.sidebar:
-    st.title("AIMU Chatbot")
-    st.write("Example AI Assistant")
+    st.title("HiPAI Chatbot")
+    st.write("Personalized AI Assistant")
 
     model = st.selectbox("Model", options=st.session_state.model_client.TOOL_MODELS, format_func=lambda x: x.name)
     temperature = st.sidebar.slider("temperature", min_value=0.01, max_value=1.0, value=0.15, step=0.01)
@@ -140,23 +137,27 @@ else:
     # Skip the initial system and user messages used for the introduction
     messages = st.session_state.model_client.messages[2:]
 
-    pending_tool_calls = []
-    for message in messages:
+    i = 0
+    while i < len(messages):
+        message = messages[i]
+
         if "thinking" in message:
             with st.expander("🤔 Thinking"):
                 st.markdown(message["thinking"])
 
+        # tool_calls are always immediately followed by their response messages, so we can check for them and render them together
         if "tool_calls" in message:
-            pending_tool_calls = list(message["tool_calls"])
-        elif message["role"] == "tool":
-            tool_call = pending_tool_calls.pop(0) if pending_tool_calls else {}
-            name = tool_call.get("function", {}).get("name", "tool")
-            with st.expander("🔧 Tool call"):
-                st.markdown(f"**Call:** `{name}`")
-                st.markdown(f"**Response:** {message['content']}")
-        elif "content" in message:
+            responses = messages[i + 1 : i + 1 + len(message["tool_calls"])]
+            for tool_call, response_msg in zip(message["tool_calls"], responses):
+                with st.expander("🔧 Tool call"):
+                    st.markdown(f"**Tool call:** {tool_call['function']['name']}")
+                    st.markdown(f"**Tool response:** {response_msg['content']}")
+            i += len(message["tool_calls"])  # skip the consumed tool response messages
+        elif message["role"] != "tool" and "content" in message:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
+
+        i += 1
 
 if prompt := st.chat_input("What's up?"):
     st.chat_message("user").markdown(prompt)
