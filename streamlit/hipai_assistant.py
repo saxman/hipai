@@ -29,8 +29,7 @@ Greet the user.
 
 MODEL_CLIENTS = [
     OllamaClient,
-    HuggingFaceClient,
-    AisuiteClient,
+    HuggingFaceClient
 ]
 
 

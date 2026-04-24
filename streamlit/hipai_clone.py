@@ -28,7 +28,7 @@ INITIAL_USER_MESSAGE = """
 Greet the user.
 """
 
-MODEL_CLIENTS = [OllamaClient, HuggingFaceClient, AisuiteClient]
+MODEL_CLIENTS = [OllamaClient, HuggingFaceClient]
 
 MCP_SERVERS = {
     "mcpServers": {
