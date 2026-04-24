@@ -1,6 +1,6 @@
 from hipai import paths
 
-from aimu.models import HuggingFaceClient, OllamaClient, AisuiteClient, StreamPhase
+from aimu.models import HuggingFaceClient, OllamaClient, StreamPhase
 from aimu.tools.client import MCPClient
 from aimu.history import ConversationManager
 
