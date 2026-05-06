@@ -1,7 +1,7 @@
 [project]
 name = "hipai"
 version = "0.1.0"
-description = "Add your description here"
+description = "Investigation into developign highly personalized AI"
 readme = "README.md"
 requires-python = ">=3.10"
 
