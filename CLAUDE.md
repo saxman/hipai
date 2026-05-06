@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-HiPAI (Highly Personalized AI) is a framework for building personalized AI chatbot experiences. It includes two Streamlit-based chat applications backed by a ChromaDB vector memory store, exposed via an MCP (Model Context Protocol) server.
+HiPAI (Highly Personalized AI) is a framework for building personalized AI chatbot experiences. It includes two Streamlit-based chat applications backed by a vector memory store, exposed via MCP (Model Context Protocol) servers.
 
 ## Commands
 
@@ -13,13 +13,16 @@ HiPAI (Highly Personalized AI) is a framework for building personalized AI chatb
 uv sync
 
 # Run the personal AI assistant chatbot
-streamlit run streamlit/hipai_assistant.py
+streamlit run web/hipai_assistant.py
 
 # Run the AI clone chatbot (mimics the user)
-streamlit run streamlit/hipai_clone.py
+streamlit run web/hipai_clone.py
 
-# Run the MCP server standalone
+# Run the local MCP server standalone
 python hipai/tools.py
+
+# Seed the memory store from a text file of facts (one per line)
+python scripts/build_memory_db.py <path/to/facts.txt>
 ```
 
 Linting uses ruff (configured in `pyproject.toml`): line length 120, target Python 3.9+.
@@ -30,23 +33,28 @@ Linting uses ruff (configured in `pyproject.toml`): line length 120, target Pyth
 
 The `aimu` package (local editable install from `../aimu`) provides the core abstractions used throughout:
 - `aimu.models`: `OllamaClient`, `HuggingFaceClient`, `AisuiteClient` — unified LLM interface with tool-use support
-- `aimu.tools`: `MCPClient` — connects Streamlit apps to the MCP server
+- `aimu.tools.client`: `MCPClient` — connects Streamlit apps to MCP servers
+- `aimu.tools.servers`: MCP server exposing `search_memories` and `add_memories` tools (backed by `aimu.memory`)
+- `aimu.memory`: `MemoryStore` — vector memory persistence
 - `aimu.history`: `ConversationManager` — persists conversation history as JSON
 
-### MCP Memory Server (`hipai/tools.py`)
+### MCP Servers
 
-A FastMCP server exposing three tools to LLMs:
-- `search_memories` — queries ChromaDB vector store for relevant user memories
-- `add_memories` — stores new facts about the user in ChromaDB
-- `get_current_date_and_time` — utility for current timestamp
+Two MCP servers are used:
 
-ChromaDB persists to `output/chroma.db`. The collection name is `"memories"`. The MCP server is launched as a subprocess by Streamlit apps via `MCPClient`.
+1. **`aimu.tools.servers`** (from the `aimu` package) — the primary memory server, providing `search_memories` and `add_memories` tools to LLMs. Both Streamlit apps connect to this server.
 
-### Streamlit Apps (`streamlit/`)
+2. **`hipai/tools.py`** (local FastMCP server) — utility server providing `get_current_date_and_time` only. Memory tools were migrated to the `aimu` package.
 
-Both apps share identical structure — the only differences are the system message and the chat history file path:
-- `hipai_assistant.py` — AI friend persona ("Bruce"), history at `output/assistant_chat_history.json`
-- `hipai_clone.py` — User clone persona, history at `output/clone_chat_history.json`
+Both servers are launched as subprocesses by `MCPClient` when a Streamlit app starts.
+
+### Streamlit Apps (`web/`)
+
+Both apps share identical structure — the only differences are the system message and sidebar title:
+- `web/hipai_assistant.py` — AI friend persona ("Bruce"), imports `MCPClient` from `aimu.tools.client`
+- `web/hipai_clone.py` — User clone persona, imports `MCPClient` from `aimu.tools`
+
+Both apps save chat history to `output/chat_history.json`.
 
 App initialization flow:
 1. On first render, create model client + MCP client, load last conversation from `ConversationManager`
@@ -60,4 +68,4 @@ Centralized path constants: `root`, `data`, `tests`, `package`, `output`. All fi
 
 ### Output directory
 
-All runtime artifacts go to `output/` (gitignored): `chroma.db`, `assistant_chat_history.json`, `clone_chat_history.json`. This directory must exist before running the apps.
+All runtime artifacts go to `output/` (gitignored): `memory_store/` (vector store written by `MemoryStore`), `chat_history.json`. This directory must exist before running the apps.
